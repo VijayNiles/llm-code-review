@@ -1,19 +1,29 @@
 import os
 import json
 import requests
-from github import Github
+from github import Github, GithubException
 
 def get_diff(repo, pull_number=None):
     """
     Retrieves the diff of a pull request or the changes in the main branch.
     """
     if pull_number:
-        pull = repo.get_pull(pull_number)
-        diff = pull.diff()
+        try:
+            pull = repo.get_pull(pull_number)
+            diff = pull.diff()
+        except GithubException as e:
+            print(f"Error getting pull request diff: {e}")
+            return None
     else:
-        last_commit = repo.get_branch("main").commit
-        diff = last_commit.diff()
-    return diff
+        try:
+            main_branch = repo.get_branch("main")
+            latest_commit = main_branch.commit
+            parent_commit = latest_commit.parents[0]
+            diff = latest_commit.diff(parent_commit)
+        except GithubException as e:
+            print(f"Error getting main branch diff: {e}")
+            return None
+    return diff.decoded_content
 
 def send_to_claude(diff, language):
     """
@@ -70,6 +80,11 @@ def main():
     event_name = os.environ.get("GITHUB_EVENT_NAME")
     pull_number = os.environ.get("PULL_REQUEST_NUMBER")
     diff = get_diff(repo, pull_number if pull_number else None)
+
+    # Check if the diff was successfully retrieved
+    if diff is None:
+        print("Failed to retrieve the diff.")
+        return
 
     # Assuming you can detect the programming language from the diff or repository
     language = "python"  # Replace with the actual language detection logic
