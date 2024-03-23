@@ -1,5 +1,4 @@
 import os
-import json
 import requests
 from github import Github, GithubException
 
@@ -11,6 +10,7 @@ def get_diff(repo, pull_number=None):
         try:
             pull = repo.get_pull(pull_number)
             diff = pull.diff()
+            print(diff.decoded_content)  # Print the diff for pull requests
         except GithubException as e:
             print(f"Error getting pull request diff: {e}")
             return None
@@ -19,7 +19,9 @@ def get_diff(repo, pull_number=None):
             main_branch = repo.get_branch("main")
             latest_commit = main_branch.commit
             parent_commit = latest_commit.parents[0]
-            diff = latest_commit.diff(parent_commit)
+            comparison = repo.compare(parent_commit.sha, latest_commit.sha)
+            diff = comparison.diff
+            print(diff.decoded_content)  # Print the diff for main branch
         except GithubException as e:
             print(f"Error getting main branch diff: {e}")
             return None
