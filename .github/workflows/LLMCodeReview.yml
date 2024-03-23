@@ -33,7 +33,7 @@ jobs:
       - name: Install dependencies
         uses: py-actions/py-dependency-install@v4
         with:
-            path: "llm-code-review/requirements.txt"
+            path: "requirements.txt"
 
       - name: Run code review
         env:
