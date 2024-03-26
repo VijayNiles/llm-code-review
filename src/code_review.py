@@ -55,7 +55,7 @@ def send_to_claude(diff, language, bedrock_runtime):
 
     return response["choices"][0]["message"]["content"]
 
-def generate_message(bedrock_runtime, system_prompt, messages):
+def generate_message(bedrock_runtime, system_prompt, messages, model_id):
     response = bedrock_runtime.invoke_model(
         body=json.dumps({
             "anthropic_version": "bedrock-2023-05-31",
