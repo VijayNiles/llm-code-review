@@ -86,7 +86,7 @@ def main():
         return
 
     # Create a client for the Bedrock Runtime service
-    bedrock_runtime = boto3.client(service_name='bedrock-runtime')
+    bedrock_runtime = boto3.client(service_name='bedrock-runtime', region_name='us-east-1')
 
     # Assuming you can detect the programming language from the diff or repository
     language = "python"  # Replace with the actual language detection logic
