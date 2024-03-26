@@ -51,7 +51,7 @@ def send_to_claude(diff, language, bedrock_runtime):
 
     # Call the Bedrock Claude API
     messages = [{"role": "user", "content": human_message_prompt}]
-    response = generate_message(bedrock_runtime, system_prompt, messages)
+    response = generate_message(bedrock_runtime, system_prompt, messages, model_id)
 
     return response["choices"][0]["message"]["content"]
 
