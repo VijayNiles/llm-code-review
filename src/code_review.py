@@ -1,5 +1,6 @@
 import os
-import requests
+import json
+import boto3
 from github import Github, GithubException
 
 def get_diff(repo, pull_number=None):
@@ -27,7 +28,7 @@ def get_diff(repo, pull_number=None):
             return None
     return diff
 
-def send_to_claude(diff, language):
+def send_to_claude(diff, language, bedrock_runtime):
     """
     Sends the diff to the Bedrock Claude model for code review.
     """
@@ -49,27 +50,23 @@ def send_to_claude(diff, language):
     """
 
     # Call the Bedrock Claude API
-    response = generate_message(aws_access_key_id, aws_secret_access_key, system_prompt, [{"role": "user", "content": human_message_prompt}])
+    messages = [{"role": "user", "content": human_message_prompt}]
+    response = generate_message(bedrock_runtime, system_prompt, messages)
 
     return response["choices"][0]["message"]["content"]
 
-def generate_message(aws_access_key_id, aws_secret_access_key, system_prompt, messages):
+def generate_message(bedrock_runtime, system_prompt, messages):
     model_id = "anthropic.claude-3-sonnet-20240229-v1:0"
-    headers = {
-        "Content-Type": "application/json",
-        "x-api-key": aws_access_key_id,
-    }
-    data = {
-        "anthropic_version": "bedrock-2023-05-31",
-        "model_id": model_id,
-        "system": system_prompt,
-        "messages": messages,
-    }
-
-    response = requests.post("https://api.bedrockcai.io/v1/models/generate_message", headers=headers, json=data, auth=(aws_access_key_id, aws_secret_access_key))
-    response_data = response.json()
-
-    return response_data
+    response = bedrock_runtime.invoke_model(
+        body=json.dumps({
+            "anthropic_version": "bedrock-2023-05-31",
+            "model_id": model_id,
+            "system": system_prompt,
+            "messages": messages
+        })
+    )
+    response_body = json.loads(response['body'].read())
+    return response_body
 
 def main():
     # Get the GitHub repository
@@ -88,11 +85,14 @@ def main():
         print("Failed to retrieve the diff.")
         return
 
+    # Create a client for the Bedrock Runtime service
+    bedrock_runtime = boto3.client(service_name='bedrock-runtime')
+
     # Assuming you can detect the programming language from the diff or repository
     language = "python"  # Replace with the actual language detection logic
 
     # Send the diff to Claude for code review
-    response = send_to_claude(diff, language)
+    response = send_to_claude(diff, language, bedrock_runtime)
     print(response)
 
 if __name__ == "__main__":
