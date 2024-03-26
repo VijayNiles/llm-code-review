@@ -9,8 +9,8 @@ def get_diff(repo, pull_number=None):
     if pull_number:
         try:
             pull = repo.get_pull(pull_number)
-            diff = pull.diff()
-            print(diff.decoded_content)  # Print the diff for pull requests
+            diff = pull.get_files()
+            print([file.filename for file in diff])  # Print the files changed in pull requests
         except GithubException as e:
             print(f"Error getting pull request diff: {e}")
             return None
@@ -20,12 +20,12 @@ def get_diff(repo, pull_number=None):
             latest_commit = main_branch.commit
             parent_commit = latest_commit.parents[0]
             comparison = repo.compare(parent_commit.sha, latest_commit.sha)
-            diff = comparison.diff
-            print(diff.decoded_content)  # Print the diff for main branch
+            diff = comparison.files
+            print([file.filename for file in diff])  # Print the files changed in main branch
         except GithubException as e:
             print(f"Error getting main branch diff: {e}")
             return None
-    return diff.decoded_content
+    return diff
 
 def send_to_claude(diff, language):
     """
