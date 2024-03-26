@@ -56,11 +56,10 @@ def send_to_claude(diff, language, bedrock_runtime):
     return response["choices"][0]["message"]["content"]
 
 def generate_message(bedrock_runtime, system_prompt, messages):
-    model_id = "anthropic.claude-3-sonnet-20240229-v1:0"
     response = bedrock_runtime.invoke_model(
         body=json.dumps({
             "anthropic_version": "bedrock-2023-05-31",
-            "model_id": model_id,
+            "modelId": model_id,
             "system": system_prompt,
             "messages": messages
         })
@@ -69,6 +68,8 @@ def generate_message(bedrock_runtime, system_prompt, messages):
     return response_body
 
 def main():
+    model_id = "anthropic.claude-3-sonnet-20240229-v1:0" 
+
     # Get the GitHub repository
     github_token = os.environ.get("GITHUB_TOKEN")
     repo_name = os.environ.get("GITHUB_REPOSITORY")
